@@ -51,6 +51,40 @@ public class UserRepository {
         return user;
     }
 
+
+//    public void callCreateUserProcedure(String username,String pass) {
+//        String sql = "CALL public.save_test(?, ?)";
+//        jdbcTemplate.update(sql, username, pass);
+//        log.info(username,pass);
+//    }
+
+    public User createProcedure(String username,String pass) {
+        String sql = "CALL public.save_test(?, ?, ?)";
+        User user = new User();
+
+        jdbcTemplate.execute(con -> {
+            CallableStatement call = con.prepareCall(sql);
+
+            call.setString(1, username);
+            call.setString(2, pass);
+            call.registerOutParameter(3, Types.VARCHAR);
+            System.out.println(call);
+            return call;
+        }, (CallableStatementCallback<Void>) cs -> {
+            cs.execute();
+            String string = cs.getString(3);
+            Map<String, Object> json = parseMapFromJson(string);
+            user.setUsername((String) json.get("username"));
+            user.setId((Integer) json.get("id"));
+            user.setPassword((String) json.get("password"));
+            return null;
+        });
+        log.info(user.toString());
+        return user;
+    }
+
+
+
     public Map<String, Object> parseMapFromJson(String result) {
         try {
             JsonNode jsonNode = objectMapper.readTree(result);
