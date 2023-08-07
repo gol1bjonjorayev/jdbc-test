@@ -1,4 +1,4 @@
-package developer.jorayev;
+package developer.jorayev.user;
 
 import lombok.*;
 
@@ -6,7 +6,6 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class UserDTO {
 
     private String username;

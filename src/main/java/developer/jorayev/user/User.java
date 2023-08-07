@@ -1,4 +1,4 @@
-package developer.jorayev;
+package developer.jorayev.user;
 
 import lombok.*;
 

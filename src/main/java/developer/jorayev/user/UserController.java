@@ -1,5 +1,6 @@
-package developer.jorayev;
+package developer.jorayev.user;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,21 +10,27 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    @Autowired
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, UserService userService) {
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Integer id) {
-        return userRepository.callGetUserByIdProcedure(id);
+        return userService.callGetUserByIdProcedure(id);
     }
 
 
     @PostMapping("/create/{username}/{pass}")
     public void createUser(@PathVariable String username,@PathVariable String pass){
-        userRepository.createProcedure(username,pass);
+        userService.createProcedure(username,pass);
+    }
+
+    @PostMapping("/reg-user")
+    public void regUser(@RequestBody UserRegDTO regDTO){
+        userService.userReg(regDTO);
     }
 
 }

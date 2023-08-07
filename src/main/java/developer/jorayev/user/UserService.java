@@ -1,31 +1,27 @@
-package developer.jorayev;
+package developer.jorayev.user;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import developer.jorayev.school.SchoolDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.CallableStatementCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.sql.CallableStatement;
 import java.sql.Types;
 import java.util.Map;
 
-@Repository
+@Service
 @Slf4j
-public class UserRepository {
-    private final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+public class UserService {
 
-    @Autowired
-    public UserRepository(JdbcTemplate jdbcTemplate, @Qualifier("objectMapper") ObjectMapper objectMapper) {
+    private final UserRepository repository;
+    private final JdbcTemplate jdbcTemplate;
+
+    public UserService(UserRepository repository, JdbcTemplate jdbcTemplate) {
+        this.repository = repository;
         this.jdbcTemplate = jdbcTemplate;
-        this.objectMapper = objectMapper;
     }
+
 
     public User callGetUserByIdProcedure(Integer id) {
         String sql = "CALL public.get_test(?, ?)";
@@ -41,7 +37,7 @@ public class UserRepository {
         }, (CallableStatementCallback<Void>) cs -> {
             cs.execute();
             String string = cs.getString(2);
-            Map<String, Object> json = parseMapFromJson(string);
+            Map<String, Object> json = repository.parseMapFromJson(string);
             user.setUsername((String) json.get("username"));
             user.setId((Integer) json.get("id"));
             user.setPassword((String) json.get("password"));
@@ -51,12 +47,6 @@ public class UserRepository {
         return user;
     }
 
-
-//    public void callCreateUserProcedure(String username,String pass) {
-//        String sql = "CALL public.save_test(?, ?)";
-//        jdbcTemplate.update(sql, username, pass);
-//        log.info(username,pass);
-//    }
 
     public User createProcedure(String username,String pass) {
         String sql = "CALL public.save_test(?, ?, ?)";
@@ -73,7 +63,7 @@ public class UserRepository {
         }, (CallableStatementCallback<Void>) cs -> {
             cs.execute();
             String string = cs.getString(3);
-            Map<String, Object> json = parseMapFromJson(string);
+            Map<String, Object> json = repository.parseMapFromJson(string);
             user.setUsername((String) json.get("username"));
             user.setId((Integer) json.get("id"));
             user.setPassword((String) json.get("password"));
@@ -82,17 +72,35 @@ public class UserRepository {
         log.info(user.toString());
         return user;
     }
+    public void userReg(UserRegDTO regDTO){
 
+        UserDTO userDTO = new UserDTO();
+        userDTO.setPassword(regDTO.getPassword());
+        userDTO.setUsername(regDTO.getUsername());
 
+        SchoolDTO schoolDTO = new SchoolDTO();
+        schoolDTO.setNames(regDTO.getNames());
+        schoolDTO.setAddress(regDTO.getAddress());
 
-    public Map<String, Object> parseMapFromJson(String result) {
-        try {
-            JsonNode jsonNode = objectMapper.readTree(result);
-            return objectMapper.convertValue(jsonNode, new TypeReference<>() {
-            });
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        String sql = "CALL public.reg_user(?, ?, ?)";
+
+        String userMapper = repository.jsonFromObject(userDTO);
+        String schoolMapper = repository.jsonFromObject(schoolDTO);
+        log.info(userMapper);
+        log.info(schoolMapper);
+        jdbcTemplate.execute(con -> {
+            CallableStatement call = con.prepareCall(sql);
+
+            call.setString(1, userMapper);
+            call.setString(2, schoolMapper);
+            call.registerOutParameter(3, Types.VARCHAR);
+            log.info(call.toString());
+            return call;
+        }, (CallableStatementCallback<Void>) cs -> {
+            cs.execute();
+            String string = cs.getString(3);
+            log.info("Successfully ==> {}", string);
+            return null;
+        });
     }
-
 }
