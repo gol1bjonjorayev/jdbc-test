@@ -1,7 +1,6 @@
 package developer.jorayev.user;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.web.bind.annotation.*;
 
 
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserRepository userRepository;
+
     private final UserService userService;
 
     public UserController(UserRepository userRepository, UserService userService) {
@@ -21,7 +21,6 @@ public class UserController {
     public User getUserById(@PathVariable Integer id) {
         return userService.callGetUserByIdProcedure(id);
     }
-
 
     @PostMapping("/create/{username}/{pass}")
     public void createUser(@PathVariable String username,@PathVariable String pass){
