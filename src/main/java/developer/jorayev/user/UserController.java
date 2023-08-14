@@ -1,6 +1,7 @@
 package developer.jorayev.user;
 
 
+import developer.jorayev.exception.ApiRequestException;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -19,7 +20,8 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Integer id) {
-        return userService.callGetUserByIdProcedure(id);
+        throw new ApiRequestException("Api should not be not null");
+//        return userService.callGetUserByIdProcedure(id);
     }
 
     @PostMapping("/create/{username}/{pass}")
