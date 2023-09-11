@@ -37,7 +37,7 @@ public class ErrorLogRepository {
         }
     }
 
-    public String jsonFromObject(Object o){
+    public String jsonFromObject(Object o) {
         try {
             return objectMapper.writeValueAsString(o);
         } catch (JsonProcessingException e) {
@@ -46,21 +46,22 @@ public class ErrorLogRepository {
     }
 
 
-    public Boolean createErrorLog(ErrorLogDTO errorLogDTO){
+    public Boolean createErrorLog(ErrorLogDTO errorLogDTO) {
         String sql = "{ ? = CALL service_procedure.create_error_log(?) }";
         String s = jsonFromObject(errorLogDTO);
 
         return jdbcTemplate.execute(con -> {
                     CallableStatement call = con.prepareCall(sql);
-                    call.setString(1, s);
-                    call.registerOutParameter(2, Types.VARCHAR);
+                    call.registerOutParameter(1, Types.BOOLEAN);
+                    call.setString(2, s);
                     System.out.println(call);
                     return call;
                 }, (CallableStatementCallback<Boolean>) cs -> {
                     cs.execute();
-                  return cs.getBoolean(2);
+                    return cs.getBoolean(1);
                 }
         );
+
     }
 
 
