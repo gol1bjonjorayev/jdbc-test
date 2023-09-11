@@ -25,5 +25,4 @@ public class GlobalHandlerException {
         return new ResponseEntity<>(apiException1,HttpStatus.BAD_REQUEST);
     }
 
-
 }
