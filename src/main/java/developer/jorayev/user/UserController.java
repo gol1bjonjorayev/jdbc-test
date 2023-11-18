@@ -2,12 +2,8 @@ package developer.jorayev.user;
 
 
 import developer.jorayev.exception.ApiRequestException;
-import developer.jorayev.log.ErrorLogDTO;
-import developer.jorayev.log.ErrorLogRepository;
+import developer.jorayev.log.*;
 import org.springframework.web.bind.annotation.*;
-import org.webjars.NotFoundException;
-
-import java.sql.Timestamp;
 
 
 @RestController
@@ -16,12 +12,14 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final ErrorLogRepository errorLogRepository;
+    private final InfoLogRepository infoLogRepository;
 
     private final UserService userService;
 
-    public UserController(UserRepository userRepository, ErrorLogRepository errorLogRepository, UserService userService) {
+    public UserController(UserRepository userRepository, ErrorLogRepository errorLogRepository, InfoLogRepository infoLogRepository, UserService userService) {
         this.userRepository = userRepository;
         this.errorLogRepository = errorLogRepository;
+        this.infoLogRepository = infoLogRepository;
         this.userService = userService;
     }
 
@@ -43,17 +41,22 @@ public class UserController {
 
 
 
-    @GetMapping("/log-error/{id}")
+    @GetMapping("/log/{id}")
     public Boolean logError(@PathVariable Integer id){
         ErrorLogDTO dto = new ErrorLogDTO();
-        if (id !=1){
+        InfoLogDTO infoLogDTO = new InfoLogDTO();
 
-            throw new NotFoundException("Xatolik");
+        if (id ==1){
+            dto.setMessage("Xatolik");
+            dto.setSource("UserController");
+            dto.setLevel(LogLevel.ERROR);
+            return errorLogRepository.createErrorLog(dto);
+        } else {
+            infoLogDTO.setMessage("Succesfully");
+            infoLogDTO.setSource("UserController");
+            infoLogDTO.setLevel(LogLevel.INFO);
+            return infoLogRepository.createInfoLog(infoLogDTO);
         }
-        dto.setMessage("Xatolik");
-        dto.setSource("UserController");
-        dto.setLevel("ERROR");
-        return errorLogRepository.createErrorLog(dto);
     }
 
 }

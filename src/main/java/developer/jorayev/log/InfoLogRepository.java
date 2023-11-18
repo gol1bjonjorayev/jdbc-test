@@ -6,17 +6,24 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.CallableStatementCallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.CallableStatement;
+import java.sql.Types;
 import java.util.Map;
 
 @Repository
 public class InfoLogRepository {
     private final ObjectMapper objectMapper;
 
+    private final JdbcTemplate jdbcTemplate;
+
     @Autowired
-    public InfoLogRepository(@Qualifier("objectMapper") ObjectMapper objectMapper) {
+    public InfoLogRepository(@Qualifier("objectMapper") ObjectMapper objectMapper, JdbcTemplate jdbcTemplate) {
         this.objectMapper = objectMapper;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
 
@@ -38,6 +45,22 @@ public class InfoLogRepository {
         }
     }
 
+    public Boolean createInfoLog(InfoLogDTO infoLogDTO) {
+        String sql = "{ ? = CALL service_procedure.create_info_log(?) }";
+        String s = jsonFromObject(infoLogDTO);
 
+        return jdbcTemplate.execute(con -> {
+                    CallableStatement call = con.prepareCall(sql);
+                    call.registerOutParameter(1, Types.BOOLEAN);
+                    call.setString(2, s);
+                    System.out.println(call);
+                    return call;
+                }, (CallableStatementCallback<Boolean>) cs -> {
+                    cs.execute();
+                    return cs.getBoolean(1);
+                }
+        );
+
+    }
 
 }
